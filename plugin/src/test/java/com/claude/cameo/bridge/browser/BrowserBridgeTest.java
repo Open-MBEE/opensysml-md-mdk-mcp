@@ -64,6 +64,12 @@ public class BrowserBridgeTest {
         assertEquals("http://localhost:5173", BrowserProtocol.origin("http://localhost:5173"));
         for (String origin : List.of("http://internal.example", "https://client.example/", "https://client.example/path", "https://user@client.example", "null", "https://CLIENT.example", "https://client.example:443")) assertThrows(IllegalArgumentException.class, () -> BrowserProtocol.origin(origin));
     }
+    @Test public void originListKeepsConfiguredOrderAndRefusesAnyInvalidEntry() {
+        assertEquals(List.of("https://kotar.app", "http://localhost:5173", "http://localhost:5192"),
+            new ArrayList<>(BrowserProtocol.origins("https://kotar.app, http://localhost:5173,,http://localhost:5192,https://kotar.app")));
+        assertTrue(BrowserProtocol.origins(" , ").isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> BrowserProtocol.origins("https://kotar.app,http://localhost:5192/"));
+    }
     @Test public void foreignOriginAndUnpairedRequestsNeverReadModel() {
         assertThrows(IllegalArgumentException.class, () -> bridge.pair("https://evil.example", new JsonObject()));
         assertThrows(IllegalStateException.class, () -> call("unknown", "project"));

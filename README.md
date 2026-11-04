@@ -1,6 +1,6 @@
 # Cameo MCP Bridge
 
-Version **3.3.1** exposes native model export resources and guarded structural
+Version **3.3.2** exposes native model export resources and guarded structural
 creation. It keeps Cameo SDK access, model consistency and transaction ownership
 in this plugin; consumers own interpretation and transformation of exported data.
 See [native export](docs/development/native-model-export.md) and
@@ -207,9 +207,10 @@ use `-Dcameo.mcp.diagnostics.gui=false`. See [diagnostic testing](docs/developme
 | `JAVA17_HOME` | unset | Alternate Java 17 home override |
 | `CAMEO_MCP_STRUCTURED_RESPONSES` | deprecated | Structured MCP object responses are now always used; this flag is kept only for backward compatibility with older docs |
 
-In version 3.1.0 or newer, choose **Options > Environment >
+In version 3.3.2 or newer, choose **Options > Environment >
 Cameo MCP Bridge > Listening port** in Cameo's System Options dialog, enter a port
-from 1 to 65535, and restart Cameo. The default is `18740`. This setting is not included in the published 3.0.0 ZIP.
+from 1 to 65535, and restart Cameo. The default is `18740`. Versions 3.1.0 to 3.3.1
+show the setting but start on the default port; use `cameo.mcp.port` with those.
 
 The Java system property `cameo.mcp.port` overrides the saved setting and remains
 available in 3.0.0. Add it to your Cameo `*.vmoptions` file:

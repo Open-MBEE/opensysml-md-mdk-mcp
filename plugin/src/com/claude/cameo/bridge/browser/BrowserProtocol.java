@@ -23,6 +23,12 @@ public final class BrowserProtocol {
             return normalized;
         } catch (Exception error) { throw new IllegalArgumentException("Use an exact HTTPS origin or trusted HTTP localhost origin, without a path"); }
     }
+    /** Parses the Environment Options origin list: comma-separated, configured order, duplicates once; one invalid entry refuses the list. */
+    public static Set<String> origins(String value) {
+        Set<String> origins = new LinkedHashSet<>();
+        for (String origin : value.split(",")) if (!origin.trim().isEmpty()) origins.add(origin(origin.trim()));
+        return origins;
+    }
     public static String text(JsonObject value, String key) { return CameoCreationPlans.text(value, key); }
     public static void exact(JsonObject value, String... keys) {
         if (!JsonCompat.keys(value).equals(Set.of(keys))) throw new IllegalArgumentException("Unexpected request fields");
