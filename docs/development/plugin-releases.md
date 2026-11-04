@@ -119,12 +119,12 @@ py -3 scripts/verify_plugin_zip.py plugin/build/2024x/cameo-mcp-bridge-3.3.2-202
 ```
 
 Outputs (including `clean`) are isolated under `plugin/build/<target>/`. Existing
-archives directly under `plugin/build/` are historical builds, not current outputs.
-`sdkLinkageSmoke` resolves bridge class signatures, checks the table wait API and the after-startup activity API
-using installed SDK libraries without initializing Cameo or a project. The ZIP
-verifier checks target descriptors, every class's Java bytecode level, embedded
-build metadata, installer paths, absence of foreign dependency classes/JARs, and
-prints SHA-256.
+archives directly under `plugin/build/` are historical builds, not current
+outputs. `sdkLinkageSmoke` resolves bridge class signatures, checks the table
+wait API and the after-startup activity API using installed SDK libraries without
+initializing Cameo or a project. The ZIP verifier checks target descriptors,
+every class's Java bytecode level, embedded build metadata, installer paths,
+absence of foreign dependency classes/JARs, and prints SHA-256.
 
 Both variants use bridge version 3.3.2 and the same Python client contract.
 Capabilities add `cameoTarget`, `targetJavaRelease`, `runtimeJavaVersion`,
@@ -141,7 +141,7 @@ and the remaining qualification limits. See the
 
 ## Publish a new release
 
-The following example shows the 3.3.1 publication workflow. For a later release,
+The following example shows the 3.3.2 publication workflow. For a later release,
 set the version to the new version already committed and built; never replace
 the existing release or move its tag. Prepare a Markdown notes file with
 changes, supported platform, matching Python version, source SHA, checksum,
@@ -149,7 +149,7 @@ test results, and any live-validation limitations.
 
 ```powershell
 $repo = 'Open-MBEE/cameo-mcp-bridge'
-$version = '3.3.1'
+$version = '3.3.2'
 $tag = "v$version"
 $assets = @(
     "plugin/build/2024x/cameo-mcp-bridge-$version-2024x.zip",

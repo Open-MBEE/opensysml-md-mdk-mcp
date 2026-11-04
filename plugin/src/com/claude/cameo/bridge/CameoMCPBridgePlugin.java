@@ -45,7 +45,14 @@ public class CameoMCPBridgePlugin extends Plugin {
             // Cameo applies the saved option values only after every plugin's init(); read here,
             // they are the built-in defaults. Start the listeners once startup has finished.
             startup = new DeferredStart(() -> start(options));
-            Application.getInstance().addActivityAfterStartup(startup::run);
+            try {
+                Application.getInstance().addActivityAfterStartup(startup::run);
+            } catch (LinkageError missing) {
+                // A host without the after-startup API still gets a bridge, on the built-in defaults.
+                Application.getInstance().getGUILog().showError("CameoMCPBridge: This Cameo version cannot apply saved "
+                    + "Cameo MCP Bridge settings before startup; the bridge starts with the built-in defaults.");
+                startup.run();
+            }
         } catch (Exception e) {
             LOG.severe("CameoMCPBridge: Failed to initialize: " + e.getMessage());
             Application.getInstance().getGUILog().showError(
@@ -65,9 +72,10 @@ public class CameoMCPBridgePlugin extends Plugin {
                     int browserPort = options.getBrowserPort();
                     if (browserPort == port) throw new IllegalArgumentException("Browser and native ports must differ");
                     java.util.Set<String> origins = options.getBrowserOrigins();
+                    int sessionMinutes = options.getBrowserSessionMinutes();
                     com.claude.cameo.bridge.browser.BrowserBridge service = new com.claude.cameo.bridge.browser.BrowserBridge(
                         origins, new com.claude.cameo.bridge.browser.NativeBrowserBackend(port),
-                        new com.claude.cameo.bridge.browser.CameoBrowserApproval(options.getBrowserSessionMinutes()), options.getBrowserSessionMinutes());
+                        new com.claude.cameo.bridge.browser.CameoBrowserApproval(sessionMinutes), sessionMinutes);
                     try { browser = new com.claude.cameo.bridge.browser.BrowserHttpServer(browserPort, service); }
                     catch (Exception error) { service.close(); throw error; }
                     browser.start();

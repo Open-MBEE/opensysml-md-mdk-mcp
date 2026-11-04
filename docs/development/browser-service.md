@@ -148,12 +148,12 @@ retry. Repeated requests for a retained reviewed plan do not create a new attemp
 
 ## Compatibility and validation
 
-Status reports `transport:paired-browser-v1`, `nativeApproval:true`, the supported
-browser operation list, capability flags and native plugin metadata. The native
-metadata's larger endpoint list does not authorize those routes through the
-browser API. Negotiate the browser protocol and plugin version explicitly;
-protocol 1 is the contract shipped by plugins 3.3.0 through 3.3.2. Native Python clients retain
-their exact plugin/client version checks.
+Status reports `transport:paired-browser-v1`, `nativeApproval:true`, the
+supported browser operation list, capability flags and native plugin metadata.
+The native metadata's larger endpoint list does not authorize those routes
+through the browser API. Negotiate the browser protocol and plugin version
+explicitly; protocol 1 is the contract shipped by plugins 3.3.0 through 3.3.2.
+Native Python clients retain their exact plugin/client version checks.
 
 The same contract is built for 2024x/Java 17 and 2022x/Java 11. See
 [build and release instructions](plugin-releases.md) and
@@ -173,11 +173,13 @@ approval remain enforced. Update exact-version clients to 3.3.1 before connectin
 
 ## Settings take effect at startup (3.3.2)
 
-Earlier 3.3.x builds read the Environment Options before Cameo applied the saved
-values, so the listeners always started with the built-in defaults: a changed native
-port, browser port, session duration, allowed-origin list or enabled flag showed in
-Environment Options but was ignored. From 3.3.2 the plugin starts its listeners as an
-after-startup activity, once the saved values are applied. Restart Cameo after
-changing a setting. The Cameo log records the effective browser port and allowed
-origins when the browser service starts. The native API now starts when Cameo's
-startup finishes rather than during plugin initialization.
+Builds 3.1.0 to 3.3.1 read the Environment Options before Cameo applied the saved
+values, so the listeners always started with the built-in defaults: a saved native
+listening port (3.1.0 onward) and the saved browser port, session duration,
+allowed-origin list and enabled flag (3.3.0 onward) showed in Environment Options
+but were ignored. From 3.3.2 the plugin starts its listeners as an after-startup
+activity, once the saved values are applied. Restart Cameo after changing a setting.
+The Cameo log records the effective browser port and allowed origins when the
+browser service starts. The native API now starts when Cameo's startup finishes
+rather than during plugin initialization. Values saved while they were ignored take
+effect on upgrade; review them first (see the 3.3.2 release note).

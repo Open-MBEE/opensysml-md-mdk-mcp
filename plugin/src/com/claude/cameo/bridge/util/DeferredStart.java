@@ -6,8 +6,10 @@ package com.claude.cameo.bridge.util;
  * <p>Cameo registers a plugin's options group during {@code init()} but applies the saved
  * values to it only after every plugin has initialized, so a value read in {@code init()} is
  * always the built-in default. The plugin therefore schedules its start as an after-startup
- * activity. A close before that activity runs cancels the start; a close after it waits for
- * a start in progress to finish, so the caller can then stop whatever was started.
+ * activity. A close before that activity runs cancels the start; a close from another thread
+ * waits for a start in progress to finish, so the caller can then stop whatever was started.
+ * The lock is re-entrant: a close on the starting thread itself (for example from a modal
+ * dialog the start opened) does not wait. A start that throws is not retried.
  */
 public final class DeferredStart {
     private final Runnable start;
