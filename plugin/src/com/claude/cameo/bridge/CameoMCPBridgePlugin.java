@@ -6,6 +6,7 @@ import com.claude.cameo.bridge.util.BridgeCapabilities;
 import com.claude.cameo.bridge.util.BridgeDiagnostics;
 import com.claude.cameo.bridge.util.BridgePort;
 import com.claude.cameo.bridge.util.BridgePlatform;
+import com.claude.cameo.bridge.util.DeferredStart;
 import javax.swing.SwingUtilities;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ public class CameoMCPBridgePlugin extends Plugin {
     private static final Logger LOG = Logger.getLogger(CameoMCPBridgePlugin.class.getName());
     private HttpBridgeServer server;
     private com.claude.cameo.bridge.browser.BrowserHttpServer browser;
+    private DeferredStart startup;
 
     @Override
     public void init() {
@@ -40,6 +42,27 @@ public class CameoMCPBridgePlugin extends Plugin {
             Application.getInstance().getEnvironmentOptions().addGroup(options);
             BridgeDiagnostics.log("Registered Cameo MCP Bridge Environment Options (plugin "
                     + BridgeCapabilities.pluginVersion() + ")");
+            // Cameo applies the saved option values only after every plugin's init(); read here,
+            // they are the built-in defaults. Start the listeners once startup has finished.
+            startup = new DeferredStart(() -> start(options));
+            try {
+                Application.getInstance().addActivityAfterStartup(startup::run);
+            } catch (LinkageError missing) {
+                // A host without the after-startup API still gets a bridge, on the built-in defaults.
+                Application.getInstance().getGUILog().showError("CameoMCPBridge: This Cameo version cannot apply saved "
+                    + "Cameo MCP Bridge settings before startup; the bridge starts with the built-in defaults.");
+                startup.run();
+            }
+        } catch (Exception e) {
+            LOG.severe("CameoMCPBridge: Failed to initialize: " + e.getMessage());
+            Application.getInstance().getGUILog().showError(
+                "CameoMCPBridge: Failed to initialize: " + e.getMessage());
+        }
+    }
+
+    /** Starts the native API and, when enabled, the browser service, from the saved options. */
+    private void start(BridgeOptions options) {
+        try {
             int port = BridgePort.resolve(System.getProperty("cameo.mcp.port"), options.getPort());
             server = new HttpBridgeServer(port);
             server.start();
@@ -48,13 +71,18 @@ public class CameoMCPBridgePlugin extends Plugin {
                 try {
                     int browserPort = options.getBrowserPort();
                     if (browserPort == port) throw new IllegalArgumentException("Browser and native ports must differ");
+                    java.util.Set<String> origins = options.getBrowserOrigins();
+                    int sessionMinutes = options.getBrowserSessionMinutes();
                     com.claude.cameo.bridge.browser.BrowserBridge service = new com.claude.cameo.bridge.browser.BrowserBridge(
-                        options.getBrowserOrigins(), new com.claude.cameo.bridge.browser.NativeBrowserBackend(port),
-                        new com.claude.cameo.bridge.browser.CameoBrowserApproval(options.getBrowserSessionMinutes()), options.getBrowserSessionMinutes());
+                        origins, new com.claude.cameo.bridge.browser.NativeBrowserBackend(port),
+                        new com.claude.cameo.bridge.browser.CameoBrowserApproval(sessionMinutes), sessionMinutes);
                     try { browser = new com.claude.cameo.bridge.browser.BrowserHttpServer(browserPort, service); }
                     catch (Exception error) { service.close(); throw error; }
                     browser.start();
-                    Application.getInstance().getGUILog().log("CameoMCPBridge: Browser service started on port " + browserPort);
+                    String started = "CameoMCPBridge: Browser service started on port " + browserPort
+                        + " for origins " + String.join(", ", origins);
+                    Application.getInstance().getGUILog().log(started);
+                    LOG.info(started);
                 } catch (Exception error) {
                     Application.getInstance().getGUILog().showError("CameoMCPBridge: Browser service unavailable: " + error.getMessage()
                         + ". Native/desktop bridge remains available. Stop the old Python connector if it owns the browser port.");
@@ -78,6 +106,8 @@ public class CameoMCPBridgePlugin extends Plugin {
 
     @Override
     public boolean close() {
+        // A start that has not run yet never will; one in progress finishes before the stop below.
+        if (startup != null) startup.close();
         if (browser != null) browser.close();
         if (server != null) {
             server.stop();
