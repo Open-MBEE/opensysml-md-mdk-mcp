@@ -1,4 +1,4 @@
-# Browser service contract (protocol 1, plugin 3.3.1)
+# Browser service contract (protocol 1, plugin 3.3.2)
 
 The plugin provides a dedicated, origin-bound browser API alongside the native
 HTTP API. Both run inside Cameo. The browser service owns session authorization
@@ -152,7 +152,7 @@ Status reports `transport:paired-browser-v1`, `nativeApproval:true`, the support
 browser operation list, capability flags and native plugin metadata. The native
 metadata's larger endpoint list does not authorize those routes through the
 browser API. Negotiate the browser protocol and plugin version explicitly;
-protocol 1 is the contract shipped by plugin 3.3.1. Native Python clients retain
+protocol 1 is the contract shipped by plugins 3.3.0 through 3.3.2. Native Python clients retain
 their exact plugin/client version checks.
 
 The same contract is built for 2024x/Java 17 and 2022x/Java 11. See
@@ -163,10 +163,21 @@ Automated validation must not install/restart Cameo or mutate a running model.
 
 ## Browser session duration (3.3.1)
 
-In Environment Options Ã¢â€ â€™ Cameo MCP Bridge Ã¢â€ â€™ Browser service, set **Browser session
-duration (minutes)**. Default: **60**; allowed range: **15Ã¢â‚¬â€œ480**. Restart Cameo
+In Environment Options → Cameo MCP Bridge → Browser service, set **Browser session
+duration (minutes)**. Default: **60**; allowed range: **15–480**. Restart Cameo
 after changing it. This is an absolute lifetime from approval, not an inactivity
 timeout; activity does not renew it. Missing settings use 60 minutes. The native
 connection dialog shows the configured duration and pairing returns it in seconds.
 Disconnect/revocation, origin binding and the separate two-minute model-change
 approval remain enforced. Update exact-version clients to 3.3.1 before connecting.
+
+## Settings take effect at startup (3.3.2)
+
+Earlier 3.3.x builds read the Environment Options before Cameo applied the saved
+values, so the listeners always started with the built-in defaults: a changed native
+port, browser port, session duration, allowed-origin list or enabled flag showed in
+Environment Options but was ignored. From 3.3.2 the plugin starts its listeners as an
+after-startup activity, once the saved values are applied. Restart Cameo after
+changing a setting. The Cameo log records the effective browser port and allowed
+origins when the browser service starts. The native API now starts when Cameo's
+startup finishes rather than during plugin initialization.

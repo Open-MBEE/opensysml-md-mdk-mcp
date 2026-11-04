@@ -75,7 +75,8 @@ public final class BridgeOptions extends AbstractPropertyOptionsGroup {
     public java.util.Set<String> getBrowserOrigins() {
         Property property = getProperty("browserOrigins");
         String value = property instanceof StringProperty ? ((StringProperty) property).getString() : "https://kotar.app,http://localhost:5173";
-        java.util.Set<String> origins = new java.util.HashSet<>();
+        // configured order, so the startup log reads the way the setting was written
+        java.util.Set<String> origins = new java.util.LinkedHashSet<>();
         for (String origin : value.split(",")) if (!origin.trim().isEmpty()) origins.add(com.claude.cameo.bridge.browser.BrowserProtocol.origin(origin.trim()));
         return origins;
     }

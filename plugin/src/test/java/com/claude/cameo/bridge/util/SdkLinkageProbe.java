@@ -21,9 +21,13 @@ public final class SdkLinkageProbe {
                 count++;
             }
         }
+        // The plugin starts its listeners as an after-startup activity, once saved options are applied.
+        Class.forName("com.nomagic.magicdraw.core.Application", false, SdkLinkageProbe.class.getClassLoader())
+                .getMethod("addActivityAfterStartup", Runnable.class);
         boolean wait = GenericTableLoad.supportsWait();
         if (wait != (expectedJava == 17)) throw new AssertionError("Unexpected table wait API availability");
         System.out.println("Resolved " + count + " bridge classes on Java " + expectedJava
-                + "; table wait API=" + wait + "; no Cameo application/model initialized");
+                + "; table wait API=" + wait + "; after-startup activity API present"
+                + "; no Cameo application/model initialized");
     }
 }
